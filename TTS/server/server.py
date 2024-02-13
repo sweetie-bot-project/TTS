@@ -127,7 +127,6 @@ def tts():
         speaker_idx = request.headers.get("speaker-id") or request.values.get("speaker_id", "")
         language_idx = request.headers.get("language-id") or request.values.get("language_id", "")
         style_wav = request.headers.get("style-wav") or request.values.get("style_wav", "")
-        style_wav = style_wav_uri_to_dict(style_wav)
         print(f" > Model input: {text}")
         print(f" > Speaker Idx: {speaker_idx}")
         print(f" > Language Idx: {language_idx}")
@@ -152,6 +151,7 @@ def mary_tts_api_voices():
         model_details = ["", "en", "", "default"]
     return render_template_string("{{ name }} {{ locale }} {{ gender }}\n", name=model_details[3], locale=model_details[1], gender="u")
 
+# Original mary_tts_api_process() here
 # @app.route("/process", methods=["GET", "POST"])
 # def mary_tts_api_process():
     # with lock:
@@ -172,7 +172,9 @@ def mary_tts_api_voices():
         # out = io.BytesIO()
         # synthesizer.save_wav(wavs, out)
     # return send_file(out, mimetype="audio/wav")
+#
 
+#Modified mary_tts_api_process() here
 @app.route("/process", methods=["GET", "POST"])
 def mary_tts_api_process():
     with lock:
@@ -200,9 +202,7 @@ def mary_tts_api_process():
         out = io.BytesIO()
         synthesizer.save_wav(wavs, out)
     return send_file(out, mimetype="audio/wav")
-    
-
-
+  
 
 def main():
     app.run(debug=args.debug, host="::", port=args.port)
