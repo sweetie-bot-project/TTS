@@ -1,3 +1,5 @@
+This includes changes so that the default web app works. Additionally, some changes have been made so that the MaryTTS compatible endpoint works with Home Assistant.
+Specifically, it is assuming language_id is "en" and it is also looking for a speaker wav file within the directory of the loaded model.
 
 ## 🐸Coqui.ai News
 - 📣 ⓍTTSv2 is here with 16 languages and better performance across the board.
