@@ -67,24 +67,14 @@ def wav_to_mel_cloning(
 
 
 def load_audio(audiopath, sampling_rate):
-    # better load setting following: https://github.com/faroit/python_audio_loading_benchmark
-
-    # torchaudio should chose proper backend to load audio depending on platform
+    if audiopath is None:
+        raise ValueError("audiopath cannot be None. Please provide a valid file path.")
     audio, lsr = torchaudio.load(audiopath)
-
-    # stereo to mono if needed
     if audio.size(0) != 1:
         audio = torch.mean(audio, dim=0, keepdim=True)
-
     if lsr != sampling_rate:
         audio = torchaudio.functional.resample(audio, lsr, sampling_rate)
-
-    # Check some assumptions about audio range. This should be automatically fixed in load_wav_to_torch, but might not be in some edge cases, where we should squawk.
-    # '10' is arbitrarily chosen since it seems like audio will often "overdrive" the [-1,1] bounds.
-    if torch.any(audio > 10) or not torch.any(audio < 0):
-        print(f"Error with {audiopath}. Max={audio.max()} min={audio.min()}")
-    # clip audio invalid values
-    audio.clip_(-1, 1)
+    audio = audio.clip_(-1, 1)
     return audio
 
 
@@ -333,6 +323,31 @@ class Xtts(BaseTTS):
         sound_norm_refs=False,
         load_sr=22050,
     ):
+
+####    
+    # def get_conditioning_latents(
+        # self,
+        # audio_path,
+        # max_ref_length=30,
+        # gpt_cond_len=6,
+        # gpt_cond_chunk_len=6,
+        # librosa_trim_db=None,
+        # sound_norm_refs=False,
+        # load_sr=22050,
+    # ):
+        # if not isinstance(audio_path, list):
+            # audio_paths = [audio_path]
+        # else:
+            # audio_paths = audio_path
+        # speaker_embeddings = []
+        # audios = []
+        # for file_path in audio_paths:
+            # if file_path is None:
+                # print("Warning: file_path is None, skipping.")
+                # continue
+            # audio = load_audio(file_path, load_sr)
+####    
+        
         """Get the conditioning latents for the GPT model from the given audio.
 
         Args:
@@ -395,9 +410,17 @@ class Xtts(BaseTTS):
             as latents used at inference.
 
         """
-        assert (
-            "zh-cn" if language == "zh" else language in self.config.languages
-        ), f" ❗ Language {language} is not supported. Supported languages are {self.config.languages}"
+# Original Language check here
+#        assert (
+#            "zh-cn" if language == "zh" else language in self.config.languages
+#        ), f" ❗ Language {language} is not supported. Supported languages are {self.config.languages}"
+
+        
+# Default to "en" if language is not supported or missing
+        language = "en" if language not in self.config.languages else language
+
+
+
         # Use generally found best tuning knobs for generation.
         settings = {
             "temperature": config.temperature,
@@ -731,8 +754,8 @@ class Xtts(BaseTTS):
     def load_checkpoint(
         self,
         config,
-        checkpoint_dir=None,
         checkpoint_path=None,
+        checkpoint_dir=None,
         vocab_path=None,
         eval=True,
         strict=True,
@@ -744,8 +767,8 @@ class Xtts(BaseTTS):
 
         Args:
             config (dict): The configuration dictionary for the model.
-            checkpoint_dir (str, optional): The directory where the checkpoint is stored. Defaults to None.
             checkpoint_path (str, optional): The path to the checkpoint file. Defaults to None.
+            checkpoint_dir (str, optional): The directory where the checkpoint is stored. Defaults to None.
             vocab_path (str, optional): The path to the vocabulary file. Defaults to None.
             eval (bool, optional): Whether to set the model to evaluation mode. Defaults to True.
             strict (bool, optional): Whether to strictly enforce that the keys in the checkpoint match the keys in the model. Defaults to True.
@@ -753,7 +776,8 @@ class Xtts(BaseTTS):
         Returns:
             None
         """
-
+        if checkpoint_dir is None and checkpoint_path:
+            checkpoint_dir = os.path.dirname(checkpoint_path)
         model_path = checkpoint_path or os.path.join(checkpoint_dir, "model.pth")
         vocab_path = vocab_path or os.path.join(checkpoint_dir, "vocab.json")
 
