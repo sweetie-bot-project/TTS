@@ -428,6 +428,8 @@ class Xtts(BaseTTS):
             "repetition_penalty": config.repetition_penalty,
             "top_k": config.top_k,
             "top_p": config.top_p,
+        # Extract 'speed' from config with a default of 1.0, this is passed later in return self.full_inference(text, speaker_wav, language, **settings)
+            "speed": getattr(config, 'speed', 1.0),            
         }
         settings.update(kwargs)  # allow overriding of preset settings with kwargs
         if speaker_id is not None:
