@@ -1,5 +1,10 @@
-This includes changes so that the default web app works. Additionally, some changes have been made so that the MaryTTS compatible endpoint works with Home Assistant.
+This includes changes so that the default web app works with fine tuned xtts v2 models. 
+Additionally, some changes have been made so that the MaryTTS compatible endpoint works with Home Assistant.
 Specifically, it is assuming language_id is "en" and it is also looking for a speaker wav file within the directory of the loaded model.
+
+This also adds support for changing inference speed. Just add a speed parameter into your models config.json. If none is found, then it defaults to 1
+
+
 
 ## 🐸Coqui.ai News
 - 📣 ⓍTTSv2 is here with 16 languages and better performance across the board.
