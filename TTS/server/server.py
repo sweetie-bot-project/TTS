@@ -10,7 +10,7 @@ from typing import Union
 from urllib.parse import parse_qs
 
 from flask import Flask, render_template, render_template_string, request, send_file
-from TTS.config import load_config
+from TTS.config import load_config, load_speed_config_path
 from TTS.utils.manage import ModelManager
 from TTS.utils.synthesizer import Synthesizer
 
@@ -58,6 +58,9 @@ if args.model_path is not None:
     model_path = args.model_path
     config_path = args.config_path
     speakers_file_path = args.speakers_file_path
+##passing path so that we can read speed value from config file
+    load_speed_config_path(args.config_path)
+##    
 
 if args.vocoder_path is not None:
     vocoder_path = args.vocoder_path
@@ -188,11 +191,10 @@ def mary_tts_api_process():
         # Automatically find a default .wav file in the model directory
         default_style_wav = find_default_style_wav(os.path.dirname(model_path))
 
+
         if default_style_wav:
             print(f"Using default style wav: {default_style_wav}")
-            # Adjust the parameter name as necessary. Here, it's assumed your synthesizer or underlying model
             # expects a parameter that indicates the path to a speaker's voice sample.
-            # The parameter name `speaker_wav` is used based on your traceback; adjust if your implementation differs.
             wavs = synthesizer.tts(text, speaker_wav=default_style_wav)
         else:
             print(f"No default style wav found. Proceeding without it.")
