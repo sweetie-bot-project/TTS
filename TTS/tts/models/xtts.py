@@ -1,4 +1,5 @@
 import os
+import json
 from dataclasses import dataclass
 
 import librosa
@@ -14,9 +15,12 @@ from TTS.tts.layers.xtts.tokenizer import VoiceBpeTokenizer, split_sentence
 from TTS.tts.layers.xtts.xtts_manager import SpeakerManager, LanguageManager
 from TTS.tts.models.base_tts import BaseTTS
 from TTS.utils.io import load_fsspec
+## import config.json path from config module
+from TTS.config import currently_loaded_config
+##
+
 
 init_stream_support()
-
 
 def wav_to_mel_cloning(
     wav,
@@ -177,7 +181,6 @@ class XttsArgs(Coqpit):
     # constants
     duration_const: int = 102400
 
-
 class Xtts(BaseTTS):
     """ⓍTTS model implementation.
 
@@ -199,7 +202,25 @@ class Xtts(BaseTTS):
         self.decoder_checkpoint = self.args.decoder_checkpoint  # TODO: check if this is even needed
         self.models_dir = config.model_dir
         self.gpt_batch_size = self.args.gpt_batch_size
+        
+## Import and store the currently loaded config path       
+        self.current_config_json = currently_loaded_config
+#        print(f"xtts.py self.current_config_json: {self.current_config_json}")  # Debug
+        
+        # Initialize speed_from_json with a default value or None
+        self.speed_from_json = None
+        
+        # Read the config JSON file and extract the speed value
+        if self.current_config_json:
+            try:
+                with open(self.current_config_json, 'r') as file:
+                    config_data = json.load(file)
+                    # Assuming 'speed' is a top-level key in your JSON structure
+                    self.speed_from_json = config_data.get('speed', 1.0)  # Default to 1.0 if not found
+            except Exception as e:
+                print(f"Failed to read or parse {self.current_config_json}: {e}")
 
+##
         self.tokenizer = VoiceBpeTokenizer()
         self.gpt = None
         self.init_models()
@@ -394,7 +415,7 @@ class Xtts(BaseTTS):
 
         return gpt_cond_latents, speaker_embedding
 
-    def synthesize(self, text, config, speaker_wav, language, speaker_id=None, **kwargs):
+    def synthesize(self, text, config, speaker_wav, language, speaker_id=None, speed=None, **kwargs):
         """Synthesize speech with the given input text.
 
         Args:
@@ -417,6 +438,14 @@ class Xtts(BaseTTS):
 
         
 # Default to "en" if language is not supported or missing
+        
+        
+##        
+        # Use speed from JSON config as default if not specified
+        if speed is None:
+            speed = self.speed_from_json if self.speed_from_json is not None else 1.0  # Default speed value
+##            
+            
         language = "en" if language not in self.config.languages else language
 
 
@@ -428,8 +457,7 @@ class Xtts(BaseTTS):
             "repetition_penalty": config.repetition_penalty,
             "top_k": config.top_k,
             "top_p": config.top_p,
-        # Extract 'speed' from config with a default of 1.0, this is passed later in return self.full_inference(text, speaker_wav, language, **settings)
-            "speed": getattr(config, 'speed', 1.0),            
+   
         }
         settings.update(kwargs)  # allow overriding of preset settings with kwargs
         if speaker_id is not None:
@@ -441,7 +469,7 @@ class Xtts(BaseTTS):
             "max_ref_len": config.max_ref_len,
             "sound_norm_refs": config.sound_norm_refs,
         })
-        return self.full_inference(text, speaker_wav, language, **settings)
+        return self.full_inference(text, speaker_wav, language, speed=speed, **settings)
 
     @torch.inference_mode()
     def full_inference(
