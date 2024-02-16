@@ -10,6 +10,7 @@ from coqpit import Coqpit
 from TTS.config.shared_configs import *
 from TTS.utils.generic_utils import find_module
 
+currently_loaded_config = None
 
 def read_json_with_comments(json_path):
     """for backward compat."""
@@ -78,6 +79,8 @@ def load_config(config_path: str) -> Coqpit:
     Returns:
         Coqpit: TTS config object.
     """
+
+	
     config_dict = {}
     ext = os.path.splitext(config_path)[1]
     if ext in (".yml", ".yaml"):
@@ -93,11 +96,51 @@ def load_config(config_path: str) -> Coqpit:
     else:
         raise TypeError(f" [!] Unknown config file type {ext}")
     config_dict.update(data)
-    model_name = _process_model_name(config_dict)
+    model_name = _process_model_name(config_dict)   
     config_class = register_config(model_name.lower())
     config = config_class()
     config.from_dict(config_dict)
+	
+
     return config
+
+##############################
+def load_speed_config_path(config_path: str):
+### Declare that we're going to modify the global variable
+    global currently_loaded_config
+##
+    """
+    Load configuration from a JSON or YAML file without filtering any data.
+
+    Args:
+        config_path (str): Path to the configuration file.
+
+    Returns:
+        dict: The configuration data as a dictionary.
+    """
+    # Determine the file extension to decide the parsing method
+#    ext = os.path.splitext(config_path)[1]
+    
+    # Initialize an empty dictionary to hold configuration data
+#    config_dict = {}
+    
+    # Load data based on file extension
+#    if ext in [".json"]:
+#        with open(config_path, "r", encoding="utf-8") as f:
+#            config_dict = json.load(f)
+#    elif ext in [".yml", ".yaml"]:
+#        with open(config_path, "r", encoding="utf-8") as f:
+#            config_dict = yaml.safe_load(f)
+#    else:
+#        raise ValueError(f"Unsupported configuration file type: {ext}")
+    
+##	# After successfully loading the configuration, update the global variable
+    currently_loaded_config = config_path
+#    print(f"config module - def load_config_unfiltered - Currently loaded config path: {currently_loaded_config}") #debug
+##	
+
+    return currently_loaded_config
+##########################    
 
 
 def check_config_and_model_args(config, arg_name, value):
