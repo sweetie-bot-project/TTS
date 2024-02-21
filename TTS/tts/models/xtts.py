@@ -437,8 +437,7 @@ class Xtts(BaseTTS):
 #        ), f" ❗ Language {language} is not supported. Supported languages are {self.config.languages}"
 
         
-# Default to "en" if language is not supported or missing
-        
+
         
 ##        
         # Use speed from JSON config as default if not specified
@@ -446,7 +445,10 @@ class Xtts(BaseTTS):
             speed = self.speed_from_json if self.speed_from_json is not None else 1.0  # Default speed value
 ##            
             
-        language = "en" if language not in self.config.languages else language
+
+        # Check if the language is supported; if not, default to English
+        if language not in self.config.languages:
+            language = "en"
 
 
 
