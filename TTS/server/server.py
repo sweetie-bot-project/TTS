@@ -133,7 +133,11 @@ def tts():
         print(f" > Model input: {text}")
         print(f" > Speaker Idx: {speaker_idx}")
         print(f" > Language Idx: {language_idx}")
-        wavs = synthesizer.tts(text, language_name=language_idx, style_wav=style_wav, speaker_wav=find_default_style_wav(os.path.dirname(model_path)))
+        if speaker_idx:
+            speaker = { "speaker_name": speaker_idx }
+        else:
+            speaker = { "speaker_wav": find_default_style_wav(os.path.dirname(model_path)) }
+        wavs = synthesizer.tts(text, language_name=language_idx, style_wav=style_wav, **speaker)
         out = io.BytesIO()
         synthesizer.save_wav(wavs, out)
     return send_file(out, mimetype="audio/wav")

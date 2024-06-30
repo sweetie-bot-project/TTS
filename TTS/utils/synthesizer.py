@@ -304,7 +304,7 @@ class Synthesizer(nn.Module):
             kwargs.pop("voice_dir")
         speaker_embedding = None
         speaker_id = None
-        if self.tts_speakers_file or hasattr(self.tts_model.speaker_manager, "name_to_id"):
+        if self.tts_model.speaker_manager or hasattr(self.tts_model.speaker_manager, "name_to_id"):
             if speaker_name and isinstance(speaker_name, str) and not self.tts_config.model == "xtts":
                 if self.tts_config.use_d_vector_file:
                     # get the average speaker embedding from the saved d_vectors.
