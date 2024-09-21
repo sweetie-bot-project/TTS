@@ -623,9 +623,11 @@ class VoiceBpeTokenizer:
         lang = lang.split("-")[0]  # remove the region
         limit = self.char_limits.get(lang, 250)
         if len(txt) > limit:
+            txt=txt[:limit]
             print(
-                f"[!] Warning: The text length exceeds the character limit of {limit} for language '{lang}', this might cause truncated audio."
+                f"[!] Warning: The text length exceeds the character limit of {limit} for language '{lang}', this cause truncated audio."
             )
+        return txt
 
     def preprocess_text(self, txt, lang):
         if lang in {"ar", "cs", "de", "en", "es", "fr", "hu", "it", "nl", "pl", "pt", "ru", "tr", "zh", "ko"}:
@@ -645,7 +647,7 @@ class VoiceBpeTokenizer:
 
     def encode(self, txt, lang):
         lang = lang.split("-")[0]  # remove the region
-        self.check_input_length(txt, lang)
+        txt = self.check_input_length(txt, lang)
         txt = self.preprocess_text(txt, lang)
         lang = "zh-cn" if lang == "zh" else lang
         txt = f"[{lang}]{txt}"
